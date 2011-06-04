@@ -1,2 +1,6 @@
 *.class
 .*.swp
+*.html
+*.css
+resources
+package-list
