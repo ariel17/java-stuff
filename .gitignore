@@ -4,3 +4,4 @@
 *.css
 resources
 package-list
+.*lock*
