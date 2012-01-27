@@ -3,6 +3,9 @@ package jexcel;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
@@ -20,11 +23,79 @@ public final class JExcel extends Object {
     static public final Integer SHEET = 0;  // sheet 1
     static public final Integer CELL = 2;  // cell 3
 
-    /**
-     * creates an {@link HSSFWorkbook} the specified OS filename.
-     */
-    private static HSSFWorkbook readFile(String filename) throws IOException {
-        return new HSSFWorkbook(new FileInputStream(filename));
+    /** 
+     * Process a Microsoft Excel file, extracts MSISDN content and returns it as
+     * a list of Strings.
+     *
+     * @param filePath
+     * @return List<String>
+    */
+
+    static public List<String> ExtractMSISDN() {
+        return new ArrayList<String>();
+    }
+
+    static public List<String> ExtractMSISDN(String filePath) {
+        return JExcel.ExtractMSISDN(filePath, false);
+    }
+
+    static public List<String> ExtractMSISDN(String filePath,
+            boolean ignoreHeaderRow) { 
+        
+        List<String> msisdns = new ArrayList<String>();
+
+        try {
+            HSSFWorkbook wb = new HSSFWorkbook(new FileInputStream(filePath));
+                                                                                    
+            HSSFSheet sheet = wb.getSheetAt(JExcel.SHEET);
+            int rows = sheet.getPhysicalNumberOfRows();
+            for (int r = ignoreHeaderRow ? 1 : 0; r < rows; r++) {
+                HSSFRow row = sheet.getRow(r);
+                if (row == null) {
+                    continue;
+                }
+                                                                                    
+                if (row.getPhysicalNumberOfCells() < 3) {
+                    continue;
+                }
+                                                                                    
+                String value = null;
+                HSSFCell cell = null;
+                try {
+                    cell = row.getCell(JExcel.CELL);
+                    switch (cell.getCellType()) {
+                                                               
+                        case HSSFCell.CELL_TYPE_FORMULA:
+                            value = cell.getCellFormula();
+                            break;
+                                                                                   
+                        case HSSFCell.CELL_TYPE_NUMERIC:
+                            value = Integer.toString(
+                                    ((Double)cell.getNumericCellValue()).
+                                    intValue());
+                            break;
+                                                                                   
+                        case HSSFCell.CELL_TYPE_STRING:
+                            value = cell.getStringCellValue();
+                            break;
+                                                                                   
+                        default:
+                    }
+                } catch (Exception e) {
+                    System.out.println("There was a problem processing a row:");
+                    e.printStackTrace();
+                    continue;
+                }
+
+                msisdns.add(value);
+            }
+        } catch (Exception e) {
+            System.out.println("There was a problem processing a the file '" +
+                    filePath + "':");
+            e.printStackTrace();
+        }
+
+        return msisdns;
     }
 
     /**
@@ -53,64 +124,12 @@ public final class JExcel extends Object {
             return;
         }
 
-        String fileName = args[0];
-        try {
-            HSSFWorkbook wb = JExcel.readFile(fileName);
+        System.out.println("Extracting MSISDNs...");
+        List<String> msisdns = JExcel.ExtractMSISDN(args[0], true);
+        System.out.println("Done.");
 
-            HSSFSheet sheet = wb.getSheetAt(JExcel.SHEET);
-            int rows = sheet.getPhysicalNumberOfRows();
-            System.out.println("Sheet " + JExcel.SHEET + " has " + rows +
-                    " row(s).");
-            for (int r = 0; r < rows; r++) {
-                HSSFRow row = sheet.getRow(r);
-                if (row == null) {
-                    System.out.println("Row " + r + " is empty. " +
-                            "Continuing.");
-                    continue;
-                }
-
-                int cells = row.getPhysicalNumberOfCells();
-                System.out.println("Row " + r + " has " + cells +
-                        " cell(s).");
-
-                if (cells < 3) {
-                    System.out.println("This row has less than 3 cells." +
-                            "Continuing.");
-                    continue;
-                }
-
-                String value = null;
-                HSSFCell cell = null;
-                try {
-                    cell = row.getCell(JExcel.CELL);
-                    switch (cell.getCellType()) {
-                                                               
-                        case HSSFCell.CELL_TYPE_FORMULA:
-                            value = cell.getCellFormula();
-                            break;
-                                                                                   
-                        case HSSFCell.CELL_TYPE_NUMERIC:
-                            value = Integer.toString(
-                                    ((Double)cell.getNumericCellValue()).
-                                    intValue());
-                            break;
-                                                                                   
-                        case HSSFCell.CELL_TYPE_STRING:
-                            value = cell.getStringCellValue();
-                            break;
-                                                                                   
-                        default:
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    System.out.println("Continuing.");
-                    continue;
-                }
-                System.out.println("CELL col=" + cell.getColumnIndex() +
-                        " VALUE=" + value);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        Iterator iter = msisdns.iterator();
+        while (iter.hasNext())
+            System.out.println("MSISDN: " + iter.next());
         }
-    }
 }
