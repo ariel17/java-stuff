@@ -27,19 +27,22 @@ public final class JExcel extends Object {
      * Process a Microsoft Excel file, extracts MSISDN content and returns it as
      * a list of Strings.
      *
-     * @param filePath
+     * @param filePath  The filepaht to process.
+     * @param ignoreHeaderRow   Indicates if must ignore first row because it
+     * is a header row. 
+     *
      * @return List<String>
     */
 
-    static public List<String> ExtractMSISDN() {
+    static public List<String> ExtractMSISDNFromExcel() {
         return new ArrayList<String>();
     }
 
-    static public List<String> ExtractMSISDN(String filePath) {
-        return JExcel.ExtractMSISDN(filePath, false);
+    static public List<String> ExtractMSISDNFromExcel(String filePath) {
+        return JExcel.ExtractMSISDNFromExcel(filePath, false);
     }
 
-    static public List<String> ExtractMSISDN(String filePath,
+    static public List<String> ExtractMSISDNFromExcel(String filePath,
             boolean ignoreHeaderRow) { 
         
         List<String> msisdns = new ArrayList<String>();
@@ -125,7 +128,7 @@ public final class JExcel extends Object {
         }
 
         System.out.println("Extracting MSISDNs...");
-        List<String> msisdns = JExcel.ExtractMSISDN(args[0], true);
+        List<String> msisdns = JExcel.ExtractMSISDNFromExcel(args[0], true);
         System.out.println("Done.");
 
         Iterator iter = msisdns.iterator();
