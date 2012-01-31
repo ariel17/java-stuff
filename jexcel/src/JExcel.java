@@ -33,19 +33,37 @@ public final class JExcel extends Object {
         return new ArrayList<String>();
     }
 
-    static public List<String> ExtractMSISDNFromExcel(String filePath) {
-        return JExcel.ExtractMSISDNFromExcel(filePath, false);
+    static public List<String> ExtractMSISDNFromExcel(String filePath,
+            boolean ignoreHeaderRow) {
+        return JExcel.ExtractMSISDNFromExcel(filePath, ignoreHeaderRow,
+                JExcel.SHEET, JExcel.CELL);
     }
 
     static public List<String> ExtractMSISDNFromExcel(String filePath,
-            boolean ignoreHeaderRow) { 
+            boolean ignoreHeaderRow, int sheetId, int cellId) {
+
+        try {
+            return JExcel.ExtractMSISDNFromExcel(new FileInputStream(filePath),
+                ignoreHeaderRow, sheetId, cellId);
+        } catch (Exception e) {
+            System.out.println("There was a problem processing the file '" +
+                    filePath + "':");
+            e.printStackTrace();
+        }
+
+        return new ArrayList<String>();        
+    }
+
+    static public List<String> ExtractMSISDNFromExcel(
+            FileInputStream inputFile, boolean ignoreHeaderRow, int sheetId,
+            int cellId) { 
         
         List<String> msisdns = new ArrayList<String>();
 
         try {
-            HSSFWorkbook wb = new HSSFWorkbook(new FileInputStream(filePath));
+            HSSFWorkbook wb = new HSSFWorkbook(inputFile);
                                                                                     
-            HSSFSheet sheet = wb.getSheetAt(JExcel.SHEET);
+            HSSFSheet sheet = wb.getSheetAt(sheetId);
             int rows = sheet.getPhysicalNumberOfRows();
             for (int r = ignoreHeaderRow ? 1 : 0; r < rows; r++) {
                 HSSFRow row = sheet.getRow(r);
@@ -53,14 +71,14 @@ public final class JExcel extends Object {
                     continue;
                 }
                                                                                     
-                if (row.getPhysicalNumberOfCells() < 3) {
+                if (row.getPhysicalNumberOfCells() < (cellId + 1)) {
                     continue;
                 }
                                                                                     
                 String value = null;
                 HSSFCell cell = null;
                 try {
-                    cell = row.getCell(JExcel.CELL);
+                    cell = row.getCell(cellId);
                     switch (cell.getCellType()) {
                                                                
                         case HSSFCell.CELL_TYPE_FORMULA:
@@ -88,8 +106,7 @@ public final class JExcel extends Object {
                 msisdns.add(value);
             }
         } catch (Exception e) {
-            System.out.println("There was a problem processing a the file '" +
-                    filePath + "':");
+            System.out.println("There was a problem processing the file:");
             e.printStackTrace();
         }
 
